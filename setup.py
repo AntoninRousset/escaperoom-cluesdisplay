@@ -21,7 +21,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
     ],
-    python_requires='=3.6',
+    python_requires='>=3.6, <3.7',
     install_requires=[
         'PyQt5>=5.12.2',
         'aiohttp>=3.6.1'
