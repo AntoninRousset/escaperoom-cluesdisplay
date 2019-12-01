@@ -18,7 +18,9 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
+
 class MainWindow(QMainWindow):
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.create_layout()
@@ -45,11 +47,14 @@ class MainWindow(QMainWindow):
     def clear(self):
         self.clue.setText('')
     
+
 class ServerSignals(QObject):
     received_clue = pyqtSignal(str)
     clear_clues = pyqtSignal()
 
+
 class Server(QRunnable):
+
     def __init__(self, host, port):
         super().__init__()
         self.host = host;
@@ -74,19 +79,22 @@ class Server(QRunnable):
         self.signals.received_clue.emit(params['text'])
         return web.Response(content_type='application/json', text='done')
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='EscapeRoom server')
     parser.add_argument('--host', type=str, default='0.0.0.0',
         help='Host for the HTTP server (default: 0.0.0.0)')
-    parser.add_argument('--port', type=int, default=8080,
+    parser.add_argument('--port', type=int, default=8081,
             help='Port for HTTP server (default: 8080)')
     args = parser.parse_args()
 
     app = QApplication([])
     window = MainWindow()
+    print(f'Screen size is: {app.desktop().screenGeometry().size()}')
+    window.setFixedSize(app.desktop().screenGeometry().size())
     server = Server(host=args.host, port=args.port)
     window.connect_server(server)
-    pool=QThreadPool()
+    pool = QThreadPool()
     pool.start(server)
     app.exec_()
 
