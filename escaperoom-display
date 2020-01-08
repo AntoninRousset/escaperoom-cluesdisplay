@@ -18,6 +18,39 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
+class Chronometer(QLabel):
+
+    @classmethod
+    def cut_seconds(cls, seconds):
+        hours, remaining = divmod(seconds, 3600)
+        minutes, seconds = divmod(remaining, 60)
+        return int(hours), int(minutes), int(seconds)
+
+    def __init__(self):
+        super().__init__('')
+        self.running = False
+        self.seconds = 0.0
+        self._elapsed_time = QElapsedTimer()
+        self._timer = QTimer(self, interval=100, timeout=self._update)
+        self._timer.timeout.connect(self._update)
+        self._timer.start()
+
+    def setCurrentState(self, state):
+        self._current_state = state
+        self.stateChanged.emit(state)
+
+    def set(self, running, seconds):
+        self._elapsed_time.start()
+        self.running = running
+        self.seconds = seconds
+        
+    @pyqtSlot()
+    def _update(self):
+        seconds = self.seconds
+        if self.running:
+            seconds += self._elapsed_time.elapsed()/1000
+        h, m, s = self.cut_seconds(seconds)
+        self.setText(f'{h:02}:{m:02}:{s:02}')
 
 class MainWindow(QMainWindow):
     
@@ -27,11 +60,18 @@ class MainWindow(QMainWindow):
         self.showFullScreen()
 
     def create_layout(self):
+        self.chronometer = Chronometer()
+        self.chronometer.setFont(QFont('Times', 80, QFont.Bold))
+        self.chronometer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.chronometer.setAlignment(Qt.AlignCenter)
+
         self.clue = QLabel('')
-        self.clue.setFont(QFont('Times', 36, QFont.Bold))
+        self.clue.setFont(QFont('Times', 36))
         self.clue.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.clue.setAlignment(Qt.AlignCenter)
+
         layout = QVBoxLayout()
+        layout.addWidget(self.chronometer)
         layout.addWidget(self.clue)
         widget = QWidget()
         widget.setLayout(layout)
@@ -40,13 +80,10 @@ class MainWindow(QMainWindow):
     def connect_server(self, server):
         server.signals.received_clue.connect(self.set_clue)
         server.signals.clear_clues.connect(self.clear)
-        server.signals.received_chronometer.connect(self.set_chronometer)
+        server.signals.received_chronometer.connect(self.chronometer.set)
     
     def set_clue(self, text):
         self.clue.setText(text)
-
-    def set_chronometer(self, text):
-        print(text)
 
     def clear(self):
         self.clue.setText('')
@@ -55,7 +92,7 @@ class MainWindow(QMainWindow):
 class ServerSignals(QObject):
     received_clue = pyqtSignal(str)
     clear_clues = pyqtSignal()
-    received_chronometer = pyqtSignal(str)
+    received_chronometer = pyqtSignal(bool, float)
 
 class Server(QRunnable):
 
@@ -83,9 +120,9 @@ class Server(QRunnable):
         if params['type'] == 'clue':
             self.signals.received_clue.emit(params['text'])
         elif params['type'] == 'chronometer':
-            self.signals.received_chronometer.emit(params['text'])
+            running, seconds = params['running'], params['seconds']
+            self.signals.received_chronometer.emit(running, seconds)
         return web.Response(content_type='application/json', text='done')
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='EscapeRoom server')
