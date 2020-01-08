@@ -40,9 +40,13 @@ class MainWindow(QMainWindow):
     def connect_server(self, server):
         server.signals.received_clue.connect(self.set_clue)
         server.signals.clear_clues.connect(self.clear)
+        server.signals.received_chronometer.connect(self.set_chronometer)
     
     def set_clue(self, text):
         self.clue.setText(text)
+
+    def set_chronometer(self, text):
+        print(text)
 
     def clear(self):
         self.clue.setText('')
@@ -51,7 +55,7 @@ class MainWindow(QMainWindow):
 class ServerSignals(QObject):
     received_clue = pyqtSignal(str)
     clear_clues = pyqtSignal()
-
+    received_chronometer = pyqtSignal(str)
 
 class Server(QRunnable):
 
@@ -70,13 +74,16 @@ class Server(QRunnable):
         runner = web.AppRunner(self.app)
         loop.run_until_complete(runner.setup())
         site = web.TCPSite(runner, self.host, self.port)
-        print(f'Server on {self.host}:{self.port}')
         loop.run_until_complete(site.start())
+        print(f'Server on {self.host}:{self.port}')
         loop.run_forever()
 
     async def handle_post(self, request):
         params = await request.json() 
-        self.signals.received_clue.emit(params['text'])
+        if params['type'] == 'clue':
+            self.signals.received_clue.emit(params['text'])
+        elif params['type'] == 'chronometer':
+            self.signals.received_chronometer.emit(params['text'])
         return web.Response(content_type='application/json', text='done')
 
 
@@ -90,11 +97,10 @@ if __name__ == '__main__':
 
     app = QApplication([])
     window = MainWindow()
-    print(f'Screen size is: {app.desktop().screenGeometry().size()}')
     window.setFixedSize(app.desktop().screenGeometry().size())
     server = Server(host=args.host, port=args.port)
     window.connect_server(server)
     pool = QThreadPool()
     pool.start(server)
-    app.exec_()
+    app.exec()
 
