@@ -23,7 +23,7 @@ class Label(QLabel):
 
     def __init__(self, font_size=36):
 
-        super().__init__('Ouvrez la porte! eiofw weofijw  wefwne fwe fwe fwefwef    wefiuheqjoifjqoidjqwiodjqwod qqwodijqwdoiqwjd qwd oqiwjd')
+        super().__init__('')
 
         self.setFont(QFont('Inconsolata', font_size))
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
