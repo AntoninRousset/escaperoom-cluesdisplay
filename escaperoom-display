@@ -95,11 +95,36 @@ class MainWindow(QMainWindow):
         self.set_background_color()
         self.showFullScreen()
 
+    def paintEvent(self, event):
+
+        pixmap = QPixmap()
+        pixmap.load('background.png')
+
+        win_size = [self.width(), self.height()]
+        win_aspect = self.width() / self.height()
+
+        img_size = [pixmap.width(), pixmap.height()]
+        img_aspect = pixmap.width() / pixmap.height()
+
+        # img flatter than window -> fit height
+        if img_aspect > win_aspect:
+            scaling_factor = win_size[1] / img_size[1]
+        # img flatter than window -> fit width 
+        else:
+            scaling_factor = win_size[0] / img_size[0]
+
+        # fit height
+        img_size[0] *= scaling_factor
+        img_size[1] *= scaling_factor
+
+        pixmap = pixmap.scaled(*img_size)
+        painter = QPainter(self)
+        center = [(win_size[0] - img_size[0]) / 2,
+                  (win_size[1] - img_size[1]) / 2]
+        painter.drawPixmap(*center, pixmap)
+
     def set_background_color(self):
-        pal = QPalette()
-        pal.setColor(QPalette.Background, QColor(24, 20, 20))
-        self.setAutoFillBackground(True)
-        self.setPalette(pal)
+        return
 
     def create_layout(self):
         self.chronometer = Chronometer()
@@ -138,8 +163,8 @@ class Server(QRunnable):
 
     def __init__(self, host, port):
         super().__init__()
-        self.host = host;
-        self.port = port;
+        self.host = host
+        self.port = port
         self.signals = ServerSignals()
         self.app = web.Application()
         self.app.add_routes([web.post('/', self.handle_post)])
