@@ -87,6 +87,16 @@ class ClueLabel(Label):
         super().__init__()
 
 
+class ClueHistory:
+
+    def __init__(self, histfile):
+        self.load_histfile(histfile)
+
+    def load_histfile(self, path):
+        with open(path) as f:
+            self.hist = [l.strip() for l in f]
+
+
 class MainWindow(QMainWindow):
 
     def __init__(self, *args, **kwargs):
@@ -146,8 +156,10 @@ class MainWindow(QMainWindow):
         server.signals.clear_clues.connect(self.clear)
         server.signals.received_chronometer.connect(self.chronometer.set)
 
-    def set_clue(self, text):
+    def set_clue(self, text, secret=False):
         self.clue.setText(text)
+        if not secret:
+            self.clue_history.add(text)
 
     def clear(self):
         self.clue.setText('')
@@ -183,7 +195,8 @@ class Server(QRunnable):
     async def handle_post(self, request):
         params = await request.json()
         if params['type'] == 'clue':
-            self.signals.received_clue.emit(params['text'])
+            self.signals.received_clue.emit(params['text'],
+                                            params.get('secret', False))
         elif params['type'] == 'chronometer':
             running, seconds = params['running'], params['seconds']
             self.signals.received_chronometer.emit(running, seconds)
