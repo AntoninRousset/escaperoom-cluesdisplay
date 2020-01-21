@@ -238,8 +238,11 @@ class Server(QRunnable):
             return done
 
     async def handle_suggestions(self, request):
-        params = await request.json()
-        n = params.get('n', self.default_nb_of_suggestions)
+        if request.method == 'POST':
+            params = await request.json()
+            n = params.get('n', self.default_nb_of_suggestions)
+        else:
+            n = self.default_nb_of_suggestions
         suggestions = self.clue_history.suggestions(n)
         return web.Response(content_type='application/json',
                             text=json.dumps({'clues': suggestions}))
