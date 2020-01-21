@@ -17,7 +17,9 @@ from aiohttp import web
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-
+from pathlib import Path
+from atomicwrites import atomic_write
+from collections import defaultdict
 
 class Label(QLabel):
 
@@ -89,12 +91,38 @@ class ClueLabel(Label):
 
 class ClueHistory:
 
-    def __init__(self, histfile):
-        self.load_histfile(histfile)
+    def __init__(self, histpath, hist_len=1000):
+        self.hist = []
+        self.hist_len = hist_len
+        self.histpath = Path(histpath)
+        self.load_histfile(self.histpath)
 
     def load_histfile(self, path):
-        with open(path) as f:
-            self.hist = [l.strip() for l in f]
+        if path.exists():
+            with open(path) as f:
+                self.hist = [l.strip() for l in f]
+        else:
+            path.touch()
+
+    def add(self, msg):
+        self.hist.append(msg)
+        with atomic_write(self.histpath, overwrite=True) as f:
+            f.write('\n'.join(self.hist[-self.hist_len:]) + '\n')
+
+    def suggestions(self, n=10):
+        sugg = [l for l, _ in sorted(self._get_occurences().items(),
+                                     key=lambda v: v[1],
+                                     reverse=True)]
+        return sugg[:n]
+
+    def _get_occurences(self):
+        occ = defaultdict(int)
+        for k in self.hist:
+            occ[k] += 1
+        return occ
+
+
+
 
 
 class MainWindow(QMainWindow):
@@ -158,8 +186,6 @@ class MainWindow(QMainWindow):
 
     def set_clue(self, text, secret=False):
         self.clue.setText(text)
-        if not secret:
-            self.clue_history.add(text)
 
     def clear(self):
         self.clue.setText('')
@@ -173,13 +199,18 @@ class ServerSignals(QObject):
 
 class Server(QRunnable):
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, clue_hist_file='clues.hist',
+                 default_nb_of_suggestions=10):
         super().__init__()
         self.host = host
         self.port = port
+        self.clue_history = ClueHistory(clue_hist_file)
+        self.default_nb_of_suggestions = default_nb_of_suggestions
         self.signals = ServerSignals()
         self.app = web.Application()
         self.app.add_routes([web.post('/', self.handle_post)])
+        self.app.add_routes([x('/suggestions', self.handle_suggestions)
+                             for x in [web.get, web.post]])
 
     @pyqtSlot()
     def run(self):
@@ -193,14 +224,40 @@ class Server(QRunnable):
         loop.run_forever()
 
     async def handle_post(self, request):
+
         params = await request.json()
+
+        done = web.Response(content_type='application/json', text='done')
+
         if params['type'] == 'clue':
-            self.signals.received_clue.emit(params['text'],
-                                            params.get('secret', False))
+            self.set_clue(params['text'], params.get('secret', False))
+            return done
+
         elif params['type'] == 'chronometer':
-            running, seconds = params['running'], params['seconds']
-            self.signals.received_chronometer.emit(running, seconds)
-        return web.Response(content_type='application/json', text='done')
+            self.set_chronometer(params['running'], params['seconds'])
+            return done
+
+    async def handle_suggestions(self, request):
+        params = await request.json()
+        n = params.get('n', self.default_nb_of_suggestions)
+        suggestions = self.clue_history.suggestions(n)
+        return web.Response(content_type='application/json',
+                            text=json.dumps({'clues': suggestions}))
+
+    def set_clue(self, text, secret=False):
+
+        # update qt
+        self.signals.received_clue.emit(text)
+
+        # save to history
+        if not secret:
+            self.clue_history.add(text)
+
+    def set_chronometer(self, running, seconds):
+
+        # update qt
+        self.signals.received_chronometer.emit(running, seconds)
+
 
 
 if __name__ == '__main__':
