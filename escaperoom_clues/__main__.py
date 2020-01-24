@@ -247,8 +247,7 @@ class Piper(QRunnable):
         self.signals.received_chronometer.emit(running, seconds)
 
 
-
-if __name__ == '__main__':
+if main():
     app = QApplication([])
     window = MainWindow()
     window.setFixedSize(app.desktop().screenGeometry().size())
@@ -257,3 +256,6 @@ if __name__ == '__main__':
     pool = QThreadPool()
     pool.start(piper)
     app.exec()
+
+if __name__ == '__main__':
+    main()

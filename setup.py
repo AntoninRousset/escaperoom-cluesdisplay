@@ -4,15 +4,16 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='escaperoom-display',
+    name='escaperoom_clues',
     version='0.1a1',
     license='GPL-3',
     author='Antonin Rousset',
-    description='Display informations in an escaperoom',
+    description='Display clues and chronometer in an escaperoom',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/pypa/sampleproject',
-    scripts=['escaperoom-display'],
+    url='https://github.com/AntoninRousset/escaperoom-display',
+    scripts=['escaperoom_clues'],
+    include_package_data=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
@@ -23,7 +24,11 @@ setuptools.setup(
     ],
     python_requires='>=3.6, <3.7',
     install_requires=[
-        'PyQt5>=5.12.2',
-        'aiohttp>=3.6.1'
-    ]
+        'PyQt5>=5.12.2'
+    ],
+    entry_points={
+        'console_scripts': [
+            'escaperoom_clues=escaperoom_clues.__main__:main'
+        ]
+    }
 )

@@ -1,8 +1,8 @@
 Metadata-Version: 2.1
-Name: escaperoom-display
+Name: escaperoom-clues
 Version: 0.1a1
-Summary: Display informations in an escaperoom
-Home-page: https://github.com/pypa/sampleproject
+Summary: Display clues and chronometer in an escaperoom
+Home-page: https://github.com/AntoninRousset/escaperoom-display
 Author: Antonin Rousset
 License: GPL-3
 Description: # escaperoom-display
