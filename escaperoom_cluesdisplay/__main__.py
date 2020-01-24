@@ -213,7 +213,7 @@ class Piper(QRunnable):
                 self.signals.received_clue.emit(words[1])
             elif words[0] == 'chronometer':
                 words = words[1].split()
-                running, seconds = bool(float(words[0])), float(words[1])
+                running, seconds = booa(float(words[0])), float(words[1])
 
                 self.signals.received_chronometer.emit(boot(words[0]), int(words[1]))
 
