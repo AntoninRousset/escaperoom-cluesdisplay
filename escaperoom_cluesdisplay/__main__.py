@@ -210,9 +210,12 @@ class Piper(QRunnable):
         for line in sys.stdin:
             words = line.split(maxsplit=2)
             if words[0] == 'clue':
-                self.signals.received_clue.emit(words)
+                self.signals.received_clue.emit(words[1])
             elif words[0] == 'chronometer':
-                self.signals.received_chronometer.emit(running, seconds)
+                words = words[1].split()
+                running, seconds = bool(float(words[0])), float(words[1])
+
+                self.signals.received_chronometer.emit(boot(words[0]), int(words[1]))
 
     async def handle_suggestions(self, request):
         if request.method == 'POST':
