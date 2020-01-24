@@ -208,21 +208,11 @@ class Piper(QRunnable):
     @pyqtSlot()
     def run(self):
         for line in sys.stdin:
-            print(line)
-
-    async def handle_post(self, request):
-
-        params = await request.json()
-
-        done = web.Response(content_type='application/json', text='done')
-
-        if params['type'] == 'clue':
-            self.set_clue(params['text'], params.get('secret', False))
-            return done
-
-        elif params['type'] == 'chronometer':
-            self.set_chronometer(params['running'], params['seconds'])
-            return done
+            words = line.split(maxsplit=2)
+            if words[0] == 'clue':
+                self.signals.received_clue.emit(words)
+            elif words[0] == 'chronometer':
+                self.signals.received_chronometer.emit(running, seconds)
 
     async def handle_suggestions(self, request):
         if request.method == 'POST':
@@ -233,20 +223,6 @@ class Piper(QRunnable):
         suggestions = self.clue_history.suggestions(n)
         return web.Response(content_type='application/json',
                             text=json.dumps({'clues': suggestions}))
-
-    def set_clue(self, text, secret=False):
-
-        # update qt
-        self.signals.received_clue.emit(text)
-
-        # save to history
-        if not secret:
-            self.clue_history.add(text)
-
-    def set_chronometer(self, running, seconds):
-
-        # update qt
-        self.signals.received_chronometer.emit(running, seconds)
 
 
 def main():
