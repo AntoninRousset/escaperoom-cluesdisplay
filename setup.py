@@ -4,15 +4,15 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='escaperoom_clues',
+    name='escaperoom_cluesdisplay',
     version='0.1a1',
     license='GPL-3',
     author='Antonin Rousset',
     description='Display clues and chronometer in an escaperoom',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/AntoninRousset/escaperoom-display',
-    packages=['escaperoom_clues'],
+    url='https://github.com/AntoninRousset/escaperoom-cluesdisplay',
+    packages=['escaperoom_cluesdisplay'],
     include_package_data=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -28,7 +28,7 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts': [
-            'escaperoom_clues=escaperoom_clues.__main__:main'
+            'escaperoom_cluesdisplay=escaperoom_cluesdisplay.__main__:main'
         ]
     }
 )
