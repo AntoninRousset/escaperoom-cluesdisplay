@@ -208,7 +208,7 @@ class Piper(QRunnable):
     @pyqtSlot()
     def run(self):
         for line in sys.stdin:
-            words = line.split(maxsplit=2)
+            words = line.split(maxsplit=1)
             if words[0] == 'clue':
                 self.signals.received_clue.emit(words[1])
             elif words[0] == 'chronometer':
