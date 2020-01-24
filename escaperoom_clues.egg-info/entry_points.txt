@@ -1,3 +1,0 @@
-[console_scripts]
-escaperoom_clues = escaperoom_clues.__main__:main
-
