@@ -12,7 +12,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/AntoninRousset/escaperoom-display',
-    scripts=['escaperoom_clues'],
+    packages=['escaperoom_clues'],
     include_package_data=True,
     classifiers=[
         'Development Status :: 3 - Alpha',

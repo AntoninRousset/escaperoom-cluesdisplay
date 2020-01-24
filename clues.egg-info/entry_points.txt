@@ -1,0 +1,3 @@
+[console_scripts]
+escaperoom_clues = clues.__main__:main
+
