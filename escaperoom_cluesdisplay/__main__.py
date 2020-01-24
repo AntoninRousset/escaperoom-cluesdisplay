@@ -215,7 +215,7 @@ class Piper(QRunnable):
                 words = words[1].split()
                 running, seconds = bool(float(words[0])), float(words[1])
 
-                self.signals.received_chronometer.emit(boot(words[0]), int(words[1]))
+                self.signals.received_chronometer.emit(running, seconds)
 
     async def handle_suggestions(self, request):
         if request.method == 'POST':
