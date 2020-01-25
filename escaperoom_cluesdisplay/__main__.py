@@ -12,7 +12,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import asyncio, json, sys
+import asyncio, json, re, sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -123,9 +123,6 @@ class ClueHistory:
         return occ
 
 
-
-
-
 class MainWindow(QMainWindow):
 
     def __init__(self, *args, **kwargs):
@@ -197,6 +194,7 @@ class CluesDisplaySignals(QObject):
     clear_clues = pyqtSignal()
     received_chronometer = pyqtSignal(bool, float)
 
+
 class Piper(QRunnable):
 
     def __init__(self, clue_hist_file='clues.hist', default_nb_of_suggestions=10):
@@ -212,15 +210,16 @@ class Piper(QRunnable):
             try:
                 if words[0] == 'clue':
                     try:
-                        self.signals.received_clue.emit(words[1])
+                        clue = words[1][:-1].replace('\\n', '\n')
+                        self.signals.received_clue.emit(clue)
                     except IndexError:
                         self.signals.received_clue.emit('')
                 elif words[0] == 'chronometer':
                     words = words[1].split()
                     running, seconds = bool(float(words[0])), float(words[1])
                     self.signals.received_chronometer.emit(running, seconds)
-            except Exception:
-                print('com error')
+            except Exception as e:
+                print('com error', e)
 
     async def handle_suggestions(self, request):
         if request.method == 'POST':
