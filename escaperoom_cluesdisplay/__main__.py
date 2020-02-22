@@ -180,15 +180,16 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout()
         layout.addWidget(self.chronometer)
         layout.addWidget(self.clue)
-        widget = QWidget()
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)
+        self.central_widget = QWidget()
+        self.central_widget.setLayout(layout)
+        self.setCentralWidget(self.central_widget)
 
     def connect_signals(self, signals):
         signals.received_clue.connect(self.set_clue)
         signals.clear_clues.connect(self.clear)
         signals.received_chronometer.connect(self.chronometer.set)
         signals.set_color.connect(self.set_color)
+        signals.set_power.connect(self.set_power)
 
     def set_clue(self, text, secret=False):
         self.clue.setText(text)
@@ -196,12 +197,19 @@ class MainWindow(QMainWindow):
     def clear(self):
         self.clue.setText('')
 
+    def set_power(self, state):
+        if state:
+            self.central_widget.setVisible(True)
+        else:
+            self.central_widget.setVisible(False)
+
 
 class CluesDisplaySignals(QObject):
     received_clue = pyqtSignal(str)
     clear_clues = pyqtSignal()
     received_chronometer = pyqtSignal(bool, float)
     set_color = pyqtSignal(QColor)
+    set_power = pyqtSignal(bool)
 
 
 class Piper(QRunnable):
@@ -228,13 +236,9 @@ class Piper(QRunnable):
                     running, seconds = bool(float(words[0])), float(words[1])
                     self.signals.received_chronometer.emit(running, seconds)
                 elif words[0] == 'power':
-                    if words[1] == 'on':
-                        print('not implemented')
-                    elif words[1] == 'off':
-                        print('not implemented')
+                    self.signals.set_power.emit(not words[1][:-1] == 'off')
                 elif words[0] == 'color':
                     self.signals.set_color.emit(colors[words[1][:-1]])
-
             except Exception as e:
                 print('com error', e)
 
