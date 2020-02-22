@@ -236,6 +236,7 @@ def main():
     app = QApplication([])
     window = MainWindow()
     window.setFixedSize(app.desktop().screenGeometry().size())
+    app.setOverrideCursor(Qt.BlankCursor)
     piper = Piper()
     window.connect_signals(piper.signals)
     pool = QThreadPool()
