@@ -22,6 +22,10 @@ from collections import defaultdict
 
 from . import ROOT
 
+colors = {
+        'green' : QColor(0, 255, 0, 180),
+        'red' : QColor(255, 0, 0, 180)
+        }
 
 class Image(QLabel):
 
@@ -46,10 +50,9 @@ class Image(QLabel):
             self.setGeometry(900, 150, *size)
             self.show()
 
-
 class Label(QLabel):
 
-    def __init__(self, font_size=36):
+    def __init__(self, font_size=36, color=colors['green']):
 
         super().__init__('')
 
@@ -57,17 +60,19 @@ class Label(QLabel):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setAlignment(Qt.AlignCenter)
         self.setWordWrap(True)
-
-        self.setStyleSheet('QLabel {color: #00ff00; }')
-
         self.shadow = QGraphicsDropShadowEffect()
         self.shadow.setBlurRadius(52)
-        self.shadow.setColor(QColor(0, 255, 0, 180))
+        self.set_color(color)
         self.shadow.setXOffset(0)
         self.shadow.setYOffset(0)
         self.setGraphicsEffect(self.shadow)
 
         shadow = QGraphicsDropShadowEffect()
+
+    def set_color(self, c):
+        style_c = f'rgba({c.red()}, {c.green()}, {c.blue()}, {c.alpha()})'
+        self.setStyleSheet('QLabel { color: '+style_c+'; }')
+        self.shadow.setColor(c)
 
 
 class Chronometer(Label):
@@ -155,7 +160,6 @@ class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.create_layout()
-        self.set_background_color()
         self.showFullScreen()
 
     def paintEvent(self, event):
@@ -195,8 +199,9 @@ class MainWindow(QMainWindow):
                   (win_size[1] - img_size[1]) / 2]
         painter.drawPixmap(*center, pixmap)
 
-    def set_background_color(self):
-        return
+    def set_color(self, color):
+        self.chronometer.set_color(color)
+        self.clue.set_color(color)
 
     def create_layout(self):
         self.chronometer = Chronometer()
@@ -209,15 +214,17 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout()
         layout.addWidget(self.chronometer)
         layout.addWidget(self.clue)
-        widget = QWidget()
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)
+        self.central_widget = QWidget()
+        self.central_widget.setLayout(layout)
+        self.setCentralWidget(self.central_widget)
 
     def connect_signals(self, signals):
         signals.received_clue.connect(self.set_clue)
         signals.clear_clues.connect(self.clear)
         signals.received_chronometer.connect(self.chronometer.set)
         signals.received_image.connect(self.chronometer.img.set)
+        signals.set_color.connect(self.set_color)
+        signals.set_power.connect(self.set_power)
 
     def set_clue(self, text, secret=False):
         self.clue.setText(text)
@@ -225,12 +232,20 @@ class MainWindow(QMainWindow):
     def clear(self):
         self.clue.setText('')
 
+    def set_power(self, state):
+        if state:
+            self.central_widget.setVisible(True)
+        else:
+            self.central_widget.setVisible(False)
+
 
 class CluesDisplaySignals(QObject):
     received_clue = pyqtSignal(str)
     clear_clues = pyqtSignal()
     received_chronometer = pyqtSignal(bool, float)
     received_image = pyqtSignal(str)
+    set_color = pyqtSignal(QColor)
+    set_power = pyqtSignal(bool)
 
 
 class Piper(QRunnable):
@@ -265,7 +280,10 @@ class Piper(QRunnable):
                     words = words[1].split()
                     running, seconds = bool(float(words[0])), float(words[1])
                     self.signals.received_chronometer.emit(running, seconds)
-
+                elif words[0] == 'power':
+                    self.signals.set_power.emit(not words[1][:-1] == 'off')
+                elif words[0] == 'color':
+                    self.signals.set_color.emit(colors[words[1][:-1]])
             except Exception as e:
                 print('com error', e)
 
@@ -284,6 +302,7 @@ def main():
     app = QApplication([])
     window = MainWindow()
     window.setFixedSize(app.desktop().screenGeometry().size())
+    app.setOverrideCursor(Qt.BlankCursor)
     piper = Piper()
     window.connect_signals(piper.signals)
     pool = QThreadPool()
