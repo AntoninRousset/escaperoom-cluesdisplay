@@ -12,7 +12,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import asyncio, json, re, sys
+import argparse, asyncio, json, re, sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -157,9 +157,11 @@ class ClueHistory:
 
 class MainWindow(QMainWindow):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, power, color, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.create_layout()
+        self.set_power(power)
+        self.set_color(color)
         self.showFullScreen()
 
     def paintEvent(self, event):
@@ -299,8 +301,15 @@ class Piper(QRunnable):
 
 
 def main():
+    parser = argparse.ArgumentParser(description='Clues display for escaperoom')
+    parser.add_argument('--poweroff', default=True, action='store_true',
+                        help='Start with the display turned off')
+    parser.add_argument('--color', type=str, default='green',
+                        help='Initial color of the display')
+    args = parser.parse_args()
+
     app = QApplication([])
-    window = MainWindow()
+    window = MainWindow(power=not args.poweroff, color=colors[args.color])
     window.setFixedSize(app.desktop().screenGeometry().size())
     app.setOverrideCursor(Qt.BlankCursor)
     piper = Piper()
