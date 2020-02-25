@@ -22,6 +22,31 @@ from collections import defaultdict
 
 from . import ROOT
 
+
+class Image(QLabel):
+
+    def __init__(self, paths, parent):
+        super().__init__(parent)
+        self.images = [QPixmap(str(ROOT / fp)) for fp in paths]
+        self.set(None)
+
+    def set(self, i):
+        try:
+            i = int(i)
+        except BaseException:
+            i = None
+
+        if i is None:
+            self.hide()
+        else:
+            img = self.images[i]
+            size = img.width(), img.height()
+            self.setPixmap(self.images[i])
+            self.setAlignment(Qt.AlignTop | Qt.AlignRight)
+            self.setGeometry(900, 150, *size)
+            self.show()
+
+
 class Label(QLabel):
 
     def __init__(self, font_size=36):
@@ -41,7 +66,6 @@ class Label(QLabel):
         self.shadow.setXOffset(0)
         self.shadow.setYOffset(0)
         self.setGraphicsEffect(self.shadow)
-
 
         shadow = QGraphicsDropShadowEffect()
 
@@ -64,6 +88,9 @@ class Chronometer(Label):
         self._timer = QTimer(self, interval=100, timeout=self._update)
         self._timer.timeout.connect(self._update)
         self._timer.start()
+
+        self.img = Image(['vessel0.png', 'vessel1.png'], self)
+        self.img.set(None)
 
     def setCurrentState(self, state):
         self._current_state = state
@@ -137,17 +164,26 @@ class MainWindow(QMainWindow):
         pixmap.load(str(ROOT/'background.png'))
 
         win_size = [self.width(), self.height()]
-        win_aspect = self.width() / self.height()
+        try:
+            win_aspect = self.width() / self.height()
+        except ZeroDivisionError:
+            win_aspect = 1
 
         img_size = [pixmap.width(), pixmap.height()]
-        img_aspect = pixmap.width() / pixmap.height()
+        try:
+            img_aspect = pixmap.width() / pixmap.height()
+        except ZeroDivisionError:
+            img_aspect = 1
 
         # img flatter than window -> fit height
-        if img_aspect > win_aspect:
-            scaling_factor = win_size[1] / img_size[1]
-        # img flatter than window -> fit width 
-        else:
-            scaling_factor = win_size[0] / img_size[0]
+        try:
+            if img_aspect > win_aspect:
+                scaling_factor = win_size[1] / img_size[1]
+            # img flatter than window -> fit width 
+            else:
+                scaling_factor = win_size[0] / img_size[0]
+        except ZeroDivisionError:
+            scaling_factor = 1
 
         # fit height
         img_size[0] *= scaling_factor
@@ -181,6 +217,7 @@ class MainWindow(QMainWindow):
         signals.received_clue.connect(self.set_clue)
         signals.clear_clues.connect(self.clear)
         signals.received_chronometer.connect(self.chronometer.set)
+        signals.received_image.connect(self.chronometer.img.set)
 
     def set_clue(self, text, secret=False):
         self.clue.setText(text)
@@ -193,6 +230,7 @@ class CluesDisplaySignals(QObject):
     received_clue = pyqtSignal(str)
     clear_clues = pyqtSignal()
     received_chronometer = pyqtSignal(bool, float)
+    received_image = pyqtSignal(str)
 
 
 class Piper(QRunnable):
@@ -218,6 +256,16 @@ class Piper(QRunnable):
                     words = words[1].split()
                     running, seconds = bool(float(words[0])), float(words[1])
                     self.signals.received_chronometer.emit(running, seconds)
+                elif words[0] == 'image':
+                    try:
+                        img = words[1]
+                    except BaseException:
+                        img = None
+                    self.signals.received_clue.emit(clue)
+                    words = words[1].split()
+                    running, seconds = bool(float(words[0])), float(words[1])
+                    self.signals.received_chronometer.emit(running, seconds)
+
             except Exception as e:
                 print('com error', e)
 
