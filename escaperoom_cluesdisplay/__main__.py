@@ -19,6 +19,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QApplication
 from window import MainWindow
 import logging
+import argparse
 
 #from . import ROOT
 ROOT = Path('.')
@@ -93,15 +94,39 @@ class Piper(QRunnable):
             except BaseException:
                 logging.exception('External cmd execution failure')
 
+def read_args():
+
+    parser = argparse.ArgumentParser(description='Clue display for escaperoom')
+    parser.add_argument('--poweroff', default=True, action='store_true',
+                        help='Start with the display turned off')
+    parser.add_argument('--color', type=str, default='green',
+                        help='Initial color of the display')
+    parser.add_argument('--background', type=str, default='green',
+                        help='Initial background')
+    return parser.parse_args()
+
 
 if __name__ == '__main__':
 
+    args = read_args()
+
+    # application
     app = QApplication([])
+
+    app.setOverrideCursor(Qt.BlankCursor)
+
+    # main window
     window = MainWindow({'green': ROOT / 'bg_green.png',
                          'red': ROOT / 'bg_red.png'},
                         fullscreen=True, debug=False)
-    window.set_background('green')
-    app.setOverrideCursor(Qt.BlankCursor)
+    try:
+        window.set_power(not args.poweroff)
+        window.set_color(args.color)
+        window.set_background(args.background)
+    except BaseException:
+        logging.exception('Failed to exec args')
+
+    # signals
     piper = Piper()
     window.connect_signals(piper.signals)
     pool = QThreadPool()

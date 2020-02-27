@@ -30,6 +30,9 @@ class Background(QWidget):
 
     def set_background(self, k):
         try:
+            if k not in self.images:
+                raise KeyError(k)
+
             self.background = k
             self._resize_background()
 
