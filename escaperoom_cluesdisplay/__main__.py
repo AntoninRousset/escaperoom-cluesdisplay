@@ -21,8 +21,7 @@ from window import MainWindow
 import logging
 import argparse
 
-#from . import ROOT
-ROOT = Path('.')
+from . import ROOT
 
 
 class CluesDisplaySignals(QObject):
