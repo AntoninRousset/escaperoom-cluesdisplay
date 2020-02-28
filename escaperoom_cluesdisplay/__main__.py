@@ -105,8 +105,7 @@ def read_args():
     return parser.parse_args()
 
 
-if __name__ == '__main__':
-
+def main():
     args = read_args()
 
     # application
@@ -131,3 +130,6 @@ if __name__ == '__main__':
     pool = QThreadPool()
     pool.start(piper)
     app.exec()
+
+if __name__ == '__main__':
+    main()
