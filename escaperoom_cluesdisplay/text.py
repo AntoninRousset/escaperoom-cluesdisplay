@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLabel, QSizePolicy, QGraphicsDropShadowEffect, \
     QFrame
 from PyQt5.QtGui import QFont
-from color import palette
+from .color import palette
 import logging
 
 

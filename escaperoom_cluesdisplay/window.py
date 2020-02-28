@@ -4,11 +4,11 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout
 from PyQt5.QtGui import QPixmap, QPainter
 from PyQt5.QtCore import Qt
-from timer import Timer
-from image import Gallery
-from text import Text
+from .timer import Timer
+from .image import Gallery
+from .text import Text
 import logging
-from utils import iter_layout
+from .utils import iter_layout
 
 
 class Background(QWidget):

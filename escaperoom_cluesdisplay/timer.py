@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from text import Text
+from .text import Text
 from PyQt5.QtCore import Qt, QElapsedTimer, QTimer
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QSizePolicy, QFrame

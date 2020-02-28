@@ -17,11 +17,11 @@ from pathlib import Path
 from PyQt5.QtCore import Qt, QObject, QRunnable, QThreadPool
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QApplication
-from window import MainWindow
 import logging
 import argparse
 
 from . import ROOT
+from .window import MainWindow
 
 
 class CluesDisplaySignals(QObject):
