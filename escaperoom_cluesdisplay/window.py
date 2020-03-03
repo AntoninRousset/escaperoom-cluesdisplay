@@ -4,6 +4,7 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout
 from PyQt5.QtGui import QPixmap, QPainter
 from PyQt5.QtCore import Qt
+from . import ROOT
 from .timer import Timer
 from .image import Gallery
 from .text import Text
@@ -82,14 +83,14 @@ class MainWindow(QMainWindow, Background):
         super().__init__(images, *args, **kwargs)
 
         images = {
-            'vessel_gg': 'vessel_gg.png',
-            'vessel_rg': 'vessel_rg.png',
-            'vessel_gr': 'vessel_gr.png',
-            'vessel_rr': 'vessel_rr.png',
-            'vessel_rx': 'vessel_rx.png',
-            'vessel_xr': 'vessel_xr.png',
-            'vessel_gx': 'vessel_gx.png',
-            'vessel_xg': 'vessel_xg.png',
+            'vessel_gg': ROOT/'vessel_gg.png',
+            'vessel_rg': ROOT/'vessel_rg.png',
+            'vessel_gr': ROOT/'vessel_gr.png',
+            'vessel_rr': ROOT/'vessel_rr.png',
+            'vessel_rx': ROOT/'vessel_rx.png',
+            'vessel_xr': ROOT/'vessel_xr.png',
+            'vessel_gx': ROOT/'vessel_gx.png',
+            'vessel_xg': ROOT/'vessel_xg.png',
         }
 
         self.timer = Timer(debug=debug)
