@@ -116,7 +116,8 @@ def main():
     # main window
     window = MainWindow({'green': ROOT / 'bg_green.png',
                          'red': ROOT / 'bg_red.png'},
-                        fullscreen=True, debug=False)
+                        fullscreen=True, debug=False,
+                        size=app.desktop().screenGeometry().size())
     try:
         window.set_power(not args.poweroff)
         window.set_color(args.color)

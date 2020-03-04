@@ -15,14 +15,15 @@ from .utils import iter_layout
 class Background(QWidget):
 
     def __init__(self, images, background_size='fit', fullscreen=True,
-                 *args, **kwargs):
+                 size=None, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.background = None
         self.background_size = background_size
         self.load_images(images)
+        if size is not None:
+            self.setFixedSize(size)
         if fullscreen:
-            self.setFixedSize(app.desktop().screenGeometry().size())
             self.showFullScreen()
         else:
             self.show()
