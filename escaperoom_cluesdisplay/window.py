@@ -22,6 +22,7 @@ class Background(QWidget):
         self.background_size = background_size
         self.load_images(images)
         if fullscreen:
+            self.setFixedSize(app.desktop().screenGeometry().size())
             self.showFullScreen()
         else:
             self.show()
