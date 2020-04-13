@@ -130,7 +130,12 @@ def main():
     window.connect_signals(piper.signals)
     pool = QThreadPool()
     pool.start(piper)
-    app.exec()
+    try:
+        app.exec()
+    except KeyboardInterrupt:
+        print('Keyboard interrupt', flush=True)
+    finally:
+        print('quitting', flush=True)
 
 if __name__ == '__main__':
     main()
